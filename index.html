@@ -1,0 +1,92 @@
+<script>
+    // ⚠️ 請在此處填入你在 Spotify 開發者後台取得的金鑰
+    const CLIENT_ID = '你的_CLIENT_ID';
+    const CLIENT_SECRET = '你的_CLIENT_SECRET';
+
+    window.onload = function() {
+        const savedUrl = localStorage.getItem('saved_podcast_url');
+        const savedRepeat = localStorage.getItem('saved_repeat_status');
+
+        if (savedUrl) {
+            document.getElementById('currentSelection').innerText = savedUrl;
+            document.getElementById('podcastUrl').value = savedUrl;
+        }
+        if (savedRepeat) {
+            document.getElementById('repeatSwitch').checked = JSON.parse(savedRepeat);
+        }
+    };
+
+    function handleSave() {
+        const url = document.getElementById('podcastUrl').value.trim();
+        if (url === '') {
+            alert('請先輸入有效的 Spotify 網址');
+            return;
+        }
+        localStorage.setItem('saved_podcast_url', url);
+        document.getElementById('currentSelection').innerText = url;
+        alert('設定已成功記憶！');
+    }
+
+    function handleRepeatToggle(isChecked) {
+        localStorage.setItem('saved_repeat_status', JSON.stringify(isChecked));
+    }
+
+    // 【核心改動】按下播放時，非同步(async)去後台跟 Spotify 要最新一集的資料
+    async function handlePlay() {
+        const currentUrl = localStorage.getItem('saved_podcast_url');
+        if (!currentUrl) {
+            alert('請先儲存一個 Podcast 節目網址！');
+            return;
+        }
+
+        // 1. 從網址中解析出 Show ID
+        let showId = '';
+        try {
+            const parts = currentUrl.split('show/')[1];
+            showId = parts.split('?')[0];
+        } catch(e) {
+            alert('無法解析該 Podcast 網址，請確認格式是否正確。');
+            return;
+        }
+
+        try {
+            // 2. 像 Spotify 總部索取臨時通行證 (Access Token)
+            const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET)
+                },
+                body: 'grant_type=client_credentials'
+            });
+            const tokenData = await tokenResponse.json();
+            const accessToken = tokenData.access_token;
+
+            // 3. 拿著通行證，去查該節目的所有單集 (Episodes)，限制只拿 1 筆最新資料
+            const podcastResponse = await fetch(`https://api.spotify.com/v1/shows/${showId}/episodes?limit=1`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            });
+            const podcastData = await podcastResponse.json();
+
+            // 4. 抓取最新一集的 ID
+            if (podcastData.items && podcastData.items.length > 0) {
+                const latestEpisodeId = podcastData.items[0].id;
+                const latestEpisodeTitle = podcastData.items[0].name;
+                
+                console.log('成功找到最新一集：' + latestEpisodeTitle);
+
+                // 5. 喚醒手機 Spotify 並直接播放這一集！
+                window.location.href = `spotify:episode:${latestEpisodeId}`;
+            } else {
+                alert('找不到該節目的單集內容。');
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('自動獲取最新一集失敗，請檢查網路或 API 金鑰設定。');
+        }
+    }
+</script>
