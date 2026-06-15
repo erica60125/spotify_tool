@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. 處理 Spotify 登入認證 (Authorization Code Flow)
     // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
-	console.info("登入後", urlParams);
     let code = urlParams.get('code');
 
     // 檢查網址列是否有對方的授權 Code 回傳
@@ -147,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. 初始化 Spotify Web Playback SDK
     // ==========================================
     window.onSpotifyWebPlaybackSDKReady = () => {
-        const token = localStorage.getItem('spotify_access_token');
+        const token = sessionStorage.getItem('spotify_access_token');
         if (!token) return;
 
         const player = new Spotify.Player({
