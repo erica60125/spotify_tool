@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!client_id) { alert('請先輸入 Client ID！'); return; }
         localStorage.setItem('saved_client_id', client_id);
 
-        const redirect_uri = "https://erica60125-spotifytool.vercel.app/callback.html"; 
+        const redirect_uri = "https://erica60125-spotifytool.vercel.app"; 
         const codeVerifier = generateRandomString(128);
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         
