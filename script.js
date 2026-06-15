@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. 處理 Spotify 登入認證 (Authorization Code Flow)
     // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
+	console.info("登入後", urlParams);
     let code = urlParams.get('code');
 
     // 檢查網址列是否有對方的授權 Code 回傳
@@ -69,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!client_id) { alert('請先輸入 Client ID！'); return; }
         localStorage.setItem('saved_client_id', client_id);
 
-        const redirect_uri = "https://erica60125-spotifytool.vercel.app"; 
+        const redirect_uri = "https://erica60125-spotifytool.vercel.app/index.html"; 
         const codeVerifier = generateRandomString(128);
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         
