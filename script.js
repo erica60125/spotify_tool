@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handlePlay() {
         const currentUrl = localStorage.getItem('saved_podcast_url');
         const token = localStorage.getItem('spotify_access_token');
-
+		console.info(currentUrl);
         if (!currentUrl || !token) {
             alert('請確認已登入 Spotify 且已儲存節目網址！');
             return;
