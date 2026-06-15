@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spotify 驗證結果</title>
+    <style>
+        /* 保持一致的藍色調漸層背景 */
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            color: #fff;
+        }
+
+        .container {
+            width: 85%; max-width: 400px; text-align: center;
+        }
+
+        /* 磨砂玻璃卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px; padding: 30px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* 錯誤圖示狀態 */
+        .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .error-icon { color: #ff6b6b; }
+        .success-icon { color: #1DB954; }
+
+        h2 { font-size: 22px; margin-top: 0; margin-bottom: 15px; }
+
+        /* 錯誤細節區塊 */
+        .error-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+            font-size: 14px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .error-item {
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .error-item span {
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        /* 返回主頁按鈕 */
+        .btn-back {
+            display: inline-block;
+            width: 100%; box-sizing: border-box;
+            background: #3498db; color: white; border: none; padding: 14px; border-radius: 30px;
+            font-size: 16px; font-weight: bold; letter-spacing: 1px; cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 8px 16px rgba(52, 152, 219, 0.3);
+            transition: 0.3s;
+        }
+        .btn-back:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="glass-card">
+            <div id="statusIcon" class="icon error-icon">❌</div>
+            <h2 id="statusTitle">驗證發生錯誤</h2>
+
+            <div class="error-details">
+                <div class="error-item"><span>錯誤代碼 (Error):</span> <div id="errCode">-</div></div>
+                <div class="error-item"><span>詳細原因 (Reason):</span> <div id="errDesc">-</div></div>
+                <div class="error-item" id="stateRow"><span>安全狀態碼 (State):</span> <div id="errState">-</div></div>
+            </div>
+
+            <a href="index.html" class="btn-back">返回播放器主頁</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 💡 1. 解析網址列帶來的 URL 參數 (?error=xxxx&error_description=xxxx)
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const errorDescription = urlParams.get('error_description');
+            const state = urlParams.get('state');
+
+            // 取得畫面的 HTML 元件
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTitle = document.getElementById('statusTitle');
+            const errCodeEl = document.getElementById('errCode');
+            const errDescEl = document.getElementById('errDesc');
+            const errStateEl = document.getElementById('errState');
+            const stateRow = document.getElementById('stateRow');
+
+            // 💡 2. 判斷是否有錯誤訊號
+            if (error) {
+                // 顯示錯誤狀態
+                statusIcon.innerText = '❌';
+                statusIcon.className = 'icon error-icon';
+                
+                // 翻譯常見的 Spotify 官方錯誤代碼，讓使用者看得懂
+                errCodeEl.innerText = error;
+                if (error === 'access_denied') {
+                    statusTitle.innerText = '使用者拒絕授權';
+                    errDescEl.innerText = '您取消了 Spotify 的登入或拒絕授權給此小工具，程式將無法連線。';
+                } else {
+                    statusTitle.innerText = 'Spotify 連線失敗';
+                    errDescEl.innerText = errorDescription || '未知錯誤，請檢查開發者後台的設定。';
+                }
+
+                if (state) {
+                    errStateEl.innerText = state;
+                } else {
+                    stateRow.style.display = 'none'; // 沒有 state 就隱藏
+                }
+            } else {
+                // 防禦機制：萬一使用者是正常登入成功、或者誤點進來，顯示安全提示
+                statusIcon.innerText = '⚠️';
+                statusIcon.className = 'icon success-icon';
+                statusTitle.innerText = '無錯誤訊號';
+                errDescEl.innerText = '未偵測到任何錯誤訊息。請確認您是經由正確的 Spotify 登入流程導向此頁面。';
+                document.getElementById('stateRow').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,92 +1,88 @@
-<script>
-    // ⚠️ 請在此處填入你在 Spotify 開發者後台取得的金鑰
-    const CLIENT_ID = '你的_CLIENT_ID';
-    const CLIENT_SECRET = '你的_CLIENT_SECRET';
-
-    window.onload = function() {
-        const savedUrl = localStorage.getItem('saved_podcast_url');
-        const savedRepeat = localStorage.getItem('saved_repeat_status');
-
-        if (savedUrl) {
-            document.getElementById('currentSelection').innerText = savedUrl;
-            document.getElementById('podcastUrl').value = savedUrl;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Podcast 快速啟動器 - SDK 版</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            color: #fff;
         }
-        if (savedRepeat) {
-            document.getElementById('repeatSwitch').checked = JSON.parse(savedRepeat);
+        .container { width: 85%; max-width: 400px; text-align: center; padding: 20px 0; }
+        h1 { font-size: 26px; margin-bottom: 25px; letter-spacing: 1px; font-weight: 700; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px; padding: 22px 20px; margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
-    };
-
-    function handleSave() {
-        const url = document.getElementById('podcastUrl').value.trim();
-        if (url === '') {
-            alert('請先輸入有效的 Spotify 網址');
-            return;
+        .label { display: block; text-align: left; font-size: 14px; color: #e0f0ff; margin-bottom: 8px; font-weight: 600; }
+        .current-status { text-align: left; font-size: 13px; color: #3498db; margin-bottom: 15px; word-break: break-all; font-weight: bold; }
+        input[type="text"] {
+            width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.2);
+            border: none; border-radius: 10px; padding: 12px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none;
         }
-        localStorage.setItem('saved_podcast_url', url);
-        document.getElementById('currentSelection').innerText = url;
-        alert('設定已成功記憶！');
-    }
-
-    function handleRepeatToggle(isChecked) {
-        localStorage.setItem('saved_repeat_status', JSON.stringify(isChecked));
-    }
-
-    // 【核心改動】按下播放時，非同步(async)去後台跟 Spotify 要最新一集的資料
-    async function handlePlay() {
-        const currentUrl = localStorage.getItem('saved_podcast_url');
-        if (!currentUrl) {
-            alert('請先儲存一個 Podcast 節目網址！');
-            return;
+        input[type="text"]::placeholder { color: #99bcde; }
+        .btn-save {
+            width: 100%; background: rgba(52, 152, 219, 0.6); border: 1px solid rgba(52, 152, 219, 0.3);
+            color: white; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
         }
-
-        // 1. 從網址中解析出 Show ID
-        let showId = '';
-        try {
-            const parts = currentUrl.split('show/')[1];
-            showId = parts.split('?')[0];
-        } catch(e) {
-            alert('無法解析該 Podcast 網址，請確認格式是否正確。');
-            return;
+        .btn-auth {
+            width: 100%; background: #1DB954; color: white; border: none; padding: 12px; border-radius: 10px;
+            font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px;
         }
-
-        try {
-            // 2. 像 Spotify 總部索取臨時通行證 (Access Token)
-            const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET)
-                },
-                body: 'grant_type=client_credentials'
-            });
-            const tokenData = await tokenResponse.json();
-            const accessToken = tokenData.access_token;
-
-            // 3. 拿著通行證，去查該節目的所有單集 (Episodes)，限制只拿 1 筆最新資料
-            const podcastResponse = await fetch(`https://api.spotify.com/v1/shows/${showId}/episodes?limit=1`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            });
-            const podcastData = await podcastResponse.json();
-
-            // 4. 抓取最新一集的 ID
-            if (podcastData.items && podcastData.items.length > 0) {
-                const latestEpisodeId = podcastData.items[0].id;
-                const latestEpisodeTitle = podcastData.items[0].name;
-                
-                console.log('成功找到最新一集：' + latestEpisodeTitle);
-
-                // 5. 喚醒手機 Spotify 並直接播放這一集！
-                window.location.href = `spotify:episode:${latestEpisodeId}`;
-            } else {
-                alert('找不到該節目的單集內容。');
-            }
-
-        } catch (error) {
-            console.error(error);
-            alert('自動獲取最新一集失敗，請檢查網路或 API 金鑰設定。');
+        .row { display: flex; justify-content: space-between; align-items: center; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #767577; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3498db; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .btn-start {
+            width: 100%; background: #3498db; color: white; border: none; padding: 16px; border-radius: 30px;
+            font-size: 18px; font-weight: bold; letter-spacing: 2px; cursor: pointer; box-shadow: 0 10px 20px rgba(52, 152, 219, 0.4); margin-top: 10px;
         }
-    }
-</script>
+    </style>
+    
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Podcast SDK Player</h1>
+
+        <div class="glass-card">
+            <span class="label">第一步：填入你的 Client ID 並連線</span>
+            <input type="text" id="clientIdInput" placeholder="請貼上你的 Client ID">
+            <button class="btn-auth" id="authBtn">🔗 登入並連結 Spotify</button>
+            <div id="authStatus" style="font-size: 12px; color: #1DB954;">尚未連結</div>
+        </div>
+
+        <div class="glass-card">
+            <span class="label">第二步：指定 Podcast 節目網址</span>
+            <div class="current-status" id="currentSelection">尚未設定節目</div>
+            <input type="text" id="podcastUrl" placeholder="貼上 Spotify 節目網址...">
+            <button class="btn-save" id="saveBtn">儲存節目設定</button>
+        </div>
+
+        <div class="glass-card row">
+            <span class="label" style="margin: 0;">開啟單集循環播放</span>
+            <label class="switch">
+                <input type="checkbox" id="repeatSwitch">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <button class="btn-start" id="startBtn">START 網頁直接開播</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
