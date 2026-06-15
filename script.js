@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 馬上拿著 Code 去換取真正的 Access Token
         exchangeCodeForToken(code);
     } else {
-        const token = localStorage.getItem('spotify_access_token');
+        const token = sessionStorage.getItem('spotify_access_token');
         if (token) authStatus.innerText = '🟢 憑證有效（已連結）';
     }
 
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (repeatSwitchInput) {
         repeatSwitchInput.addEventListener('change', function() {
             localStorage.setItem('saved_repeat_status', JSON.stringify(this.checked));
-            if(localStorage.getItem('spotify_access_token')) setRepeatMode(this.checked);
+            if(sessionStorage.getItem('spotify_access_token')) setRepeatMode(this.checked);
         });
     }
 
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function handlePlay() {
         const currentUrl = localStorage.getItem('saved_podcast_url');
-        const token = localStorage.getItem('spotify_access_token');
+        const token = sessionStorage.getItem('spotify_access_token');
 		console.info(currentUrl);
         if (!currentUrl || !token) {
             alert('請確認已登入 Spotify 且已儲存節目網址！');
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function setRepeatMode(isRepeat) {
-        const token = localStorage.getItem('spotify_access_token');
+        const token = sessionStorage.getItem('spotify_access_token');
         const state = isRepeat ? 'track' : 'off';
         if (!token) return;
         
