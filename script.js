@@ -1,21 +1,37 @@
 // ==========================================================================
 // 🌐 1. 全域變數與全域函數（確保任何人、在任何地方都呼叫得到）
 // ==========================================================================
+// ==========================================================================
+// 🌐 1. 全域變數與全域函數（智慧型過期預檢版本）
+// ==========================================================================
 let currentDeviceId = null;
 let playerInstance = null;
 
-// 💡 修正：將 refreshAccessToken 移至最外層，確保 SDK 監聽器呼叫得到！
 async function refreshAccessToken() {
     const client_id = localStorage.getItem('saved_client_id');
     const refresh_token = localStorage.getItem('spotify_refresh_token');
+    const tokenExists = sessionStorage.getItem('spotify_access_token');
+    const expiresAt = sessionStorage.getItem('spotify_token_expires_at');
 
+    // 💡 【核心智慧判斷層】
+    if (tokenExists && expiresAt) {
+        const currentTime = Date.now();
+        // 為了安全起見，我們預留 60 秒的緩衝時間（60000 微秒）
+        // 如果目前時間距離過期時間還超過 1 分鐘，代表 Token 還非常有活力！
+        if (currentTime < (parseInt(expiresAt) - 60000)) {
+            console.log("[Auto-Refresh] ⚡ 預檢通過：當前 Token 仍在有效期限內，無需重複向 Spotify 申請。");
+            return true; // 直接通行，不發送任何網路請求！
+        }
+    }
+
+    // ─── 如果上面沒通過，代表 Token 快過期了或根本沒有 Token，以下才開始執行真正的網路刷新 ───
     if (!client_id || !refresh_token) {
         console.log("[Auto-Refresh] 缺少 Client ID 或 Refresh Token，無法自動刷新。");
         return false;
     }
 
     try {
-        console.log("[Auto-Refresh] 正在向 Spotify 總部申請更換全新 Access Token...");
+        console.log("[Auto-Refresh] ⏳ 偵測到 Token 已過期或即將失效，正在背景申請全新 Access Token...");
         const response = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -30,11 +46,19 @@ async function refreshAccessToken() {
 
         const data = await response.json();
         if (data.access_token) {
+            // 儲存新 Token
             sessionStorage.setItem('spotify_access_token', data.access_token);
+            
+            // 💡 記得同步更新這把新 Token 的過期時間戳記！
+            const expiresInSec = data.expires_in || 3600;
+            const expireTime = Date.now() + (expiresInSec * 1000);
+            sessionStorage.setItem('spotify_token_expires_at', expireTime.toString());
+
             if (data.refresh_token) {
                 localStorage.setItem('spotify_refresh_token', data.refresh_token);
             }
-            console.log("[Auto-Refresh] ✨ Token 刷新成功！");
+            
+            console.log("[Auto-Refresh] ✨ 全新 Token 刷新成功！過期時間已重設。");
             const authStatus = document.getElementById('authStatus');
             if (authStatus) authStatus.innerText = '🟢 憑證已自動更新';
             return true;
@@ -209,6 +233,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.access_token) {
                 sessionStorage.setItem('spotify_access_token', data.access_token);
+                
+                // 💡 【新增】計算並儲存這把 Access Token 的精準過期時間點（目前時間 + 壽命秒數）
+                // data.expires_in 通常是 3600（秒）
+                const expiresInSec = data.expires_in || 3600;
+                const expireTime = Date.now() + (expiresInSec * 1000); // 轉為微秒時間戳
+                sessionStorage.setItem('spotify_token_expires_at', expireTime.toString());
+
                 if (data.refresh_token) {
                     localStorage.setItem('spotify_refresh_token', data.refresh_token);
                 }
