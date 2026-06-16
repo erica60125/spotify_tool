@@ -105,6 +105,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
     player.addListener('initialization_error', ({ message }) => { console.error('[SDK 初始化錯誤]', message); });
     player.addListener('account_error', ({ message }) => { 
+        console.error('[權限錯誤]', message); 
         alert('官方限制：Web Playback SDK 僅支援 Spotify Premium 付費會員帳號！'); 
     });
 
