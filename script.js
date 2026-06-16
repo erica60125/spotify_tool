@@ -1,16 +1,55 @@
 // ==========================================================================
-// 💡 全域變數定義
+// 🌐 1. 全域變數與全域函數（確保任何人、在任何地方都呼叫得到）
 // ==========================================================================
 let currentDeviceId = null;
 let playerInstance = null;
 
-// 全域 Web Playback SDK 初始化監聽器
+// 💡 修正：將 refreshAccessToken 移至最外層，確保 SDK 監聽器呼叫得到！
+async function refreshAccessToken() {
+    const client_id = localStorage.getItem('saved_client_id');
+    const refresh_token = localStorage.getItem('spotify_refresh_token');
+
+    if (!client_id || !refresh_token) {
+        console.log("[Auto-Refresh] 缺少 Client ID 或 Refresh Token，無法自動刷新。");
+        return false;
+    }
+
+    try {
+        console.log("[Auto-Refresh] 正在向 Spotify 總部申請更換全新 Access Token...");
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refresh_token,
+                client_id: client_id
+            })
+        });
+
+        if (!response.ok) throw new Error('Spotify 拒絕刷新 Token');
+
+        const data = await response.json();
+        if (data.access_token) {
+            sessionStorage.setItem('spotify_access_token', data.access_token);
+            if (data.refresh_token) {
+                localStorage.setItem('spotify_refresh_token', data.refresh_token);
+            }
+            console.log("[Auto-Refresh] ✨ Token 刷新成功！");
+            const authStatus = document.getElementById('authStatus');
+            if (authStatus) authStatus.innerText = '🟢 憑證已自動更新';
+            return true;
+        }
+    } catch (error) {
+        console.error('[Auto-Refresh 發生嚴重錯誤]:', error);
+        return false;
+    }
+    return false;
+}
+
+// 💡 官方 SDK 專用監聽器（必須在全域）
 window.onSpotifyWebPlaybackSDKReady = () => {
     const token = sessionStorage.getItem('spotify_access_token');
-    if (!token) {
-        console.log("[SDK] 尚未取得 Access Token，暫緩初始化播放器。");
-        return;
-    }
+    if (!token) return;
 
     const player = new Spotify.Player({
         name: '磨砂玻璃 Podcast 播放小工具',
@@ -27,30 +66,25 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     });
 
     player.addListener('authentication_error', async ({ message }) => { 
-        console.warn('[SDK 驗證過期] 收到 SDK 驗證錯誤，嘗試啟動自動刷新機制...'); 
-        document.getElementById('authStatus').innerText = '🔄 憑證過期，正在自動刷新中...';
+        console.warn('[SDK 驗證過期] 嘗試啟動自動刷新機制...'); 
+        const statusEl = document.getElementById('authStatus');
+        if (statusEl) statusEl.innerText = '🔄 憑證過期，正在自動刷新中...';
         
-        // 💡 核心：當 SDK 報出驗證錯誤時，自動在背景刷新 Token
+        // 這裡現在可以安全呼叫最上方的全域 refreshAccessToken 了！
         const refreshed = await refreshAccessToken();
         if (refreshed) {
-            // 刷新成功後，重新連接播放器
             player.disconnect();
             window.onSpotifyWebPlaybackSDKReady();
         } else {
-            document.getElementById('authStatus').innerText = '🔴 憑證已過期，請重新連結';
+            if (statusEl) statusEl.innerText = '🔴 憑證已過期，請重新連結';
         }
-    });
-
-    player.addListener('initialization_error', ({ message }) => { console.error('[SDK 初始化錯誤]', message); });
-    player.addListener('account_error', ({ message }) => { 
-        alert('官方限制：Web Playback SDK 僅支援 Spotify Premium 付費會員帳號！'); 
     });
 
     player.connect();
 };
 
 // ==========================================================================
-// DOM 介面互動與 PKCE 安全流程處理
+// 🏠 2. DOM 介面互動與事件綁定（當網頁畫面載入完畢後執行）
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -64,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startBtn = document.getElementById('startBtn');
     const authStatus = document.getElementById('authStatus');
 
-    // 1. 載入並回復歷史記憶狀態
+    // 回復歷史紀錄
     const savedUrl = localStorage.getItem('saved_podcast_url');
     const savedRepeat = localStorage.getItem('saved_repeat_status');
     const savedID = localStorage.getItem('saved_client_id');
@@ -74,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (clientIdInput && savedID) clientIdInput.value = savedID;
     if (repeatSwitchInput && savedRepeat) repeatSwitchInput.checked = JSON.parse(savedRepeat);
 
-    // 2. PKCE 工具函式
+    // PKCE 工具函式
     function generateRandomString(length) {
         let text = '';
         let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -95,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return base64encode(digest);
     }
 
-    // 3. 解析自 Spotify 導回來的網址參數
+    // 檢查網址列參數是否有 Code
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
@@ -107,8 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
             authStatus.innerText = '🟢 驗證成功（已連結）';
             loadSpotifySDK();
         } else if (localStorage.getItem('spotify_refresh_token')) {
-            // 💡 驚喜：如果打開網頁時沒有 Access Token 但有 Refresh Token，代表之前登入過，直接幫使用者在背景重抓！
-            console.log("[初始化] 偵測到歷史刷新令牌，啟動自動登入...");
             refreshAccessToken().then(success => {
                 if (success) loadSpotifySDK();
             });
@@ -126,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(script);
     }
 
-    // 4. 點擊登入：PKCE 導向
+    // 點擊登入連線
     authBtn.addEventListener('click', async function() {
         const client_id = clientIdInput.value.trim();
         if(!client_id) { alert('請填寫有效的 Client ID！'); return; }
@@ -153,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = authUrl.toString(); 
     });
 
-    // 5. 核心後台連線：利用 Code 兌換 Access Token 與 Refresh Token
+    // Code 換 Token
     async function exchangeCodeForToken(code) {
         const client_id = localStorage.getItem('saved_client_id');
         const codeVerifier = localStorage.getItem('code_verifier');
@@ -177,12 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.access_token) {
                 sessionStorage.setItem('spotify_access_token', data.access_token);
-                
-                // 💡 關鍵：把可以重複使用的 Refresh Token 安全地鎖進長效記憶體
                 if (data.refresh_token) {
                     localStorage.setItem('spotify_refresh_token', data.refresh_token);
                 }
-
                 authStatus.innerText = '🟢 Spotify 連線成功！';
                 window.history.replaceState({}, document.title, redirect_uri);
                 loadSpotifySDK();
@@ -193,54 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ==========================================================================
-    // 🔄 【全新功能】背景自動刷新 Token 的核心機制
-    // ==========================================================================
-    async function refreshAccessToken() {
-        const client_id = localStorage.getItem('saved_client_id');
-        const refresh_token = localStorage.getItem('spotify_refresh_token');
-
-        if (!client_id || !refresh_token) {
-            console.log("[Auto-Refresh] 缺少 Client ID 或 Refresh Token，無法自動刷新。");
-            return false;
-        }
-
-        try {
-            console.log("[Auto-Refresh] 正在向 Spotify 總部申請更換全新 Access Token...");
-            const response = await fetch('https://accounts.spotify.com/api/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'refresh_token',
-                    refresh_token: refresh_token,
-                    client_id: client_id
-                })
-            });
-
-            if (!response.ok) throw new Error('刷新 Token 失敗');
-
-            const data = await response.json();
-            if (data.access_token) {
-                // 將新抓到的 Access Token 覆蓋掉過期的舊 Token
-                sessionStorage.setItem('spotify_access_token', data.access_token);
-                
-                // 有時候 Spotify 會順便回傳一個新的 refresh token，有的話就順便同步更新
-                if (data.refresh_token) {
-                    localStorage.setItem('spotify_refresh_token', data.refresh_token);
-                }
-
-                console.log("[Auto-Refresh] ✨ Token 刷新成功！過期警報解除。");
-                authStatus.innerText = '🟢 憑證已自動更新';
-                return true;
-            }
-        } catch (error) {
-            console.error('[Auto-Refresh 發生嚴重錯誤]:', error);
-            return false;
-        }
-        return false;
-    }
-
-    // 6. 儲存 Podcast 設定
+    // 儲存設定
     saveBtn.addEventListener('click', function() {
         const url = podcastUrlInput.value.trim();
         if (url === '' || !url.includes('show/')) { alert('請貼上包含 "show/" 的有效 Spotify 節目網址！'); return; }
@@ -256,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 7. 一鍵自動化搜尋最新一集並播放
+    // 點擊 START 播放最新一集
     startBtn.addEventListener('click', handlePlay);
 
     async function handlePlay() {
@@ -268,7 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let showId = '';
         try { showId = currentUrl.split('show/')[1].split('?')[0]; } catch(e) { alert('網址格式錯誤。'); return; }
 
-        // 💡 雙重防禦：在按下播放按鈕的當下，如果發現網頁完全沒有 Token，但有刷新令牌，先執行一次自動刷新
         if (!token && localStorage.getItem('spotify_refresh_token')) {
             const success = await refreshAccessToken();
             if (success) {
@@ -282,18 +263,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             authStatus.innerText = '🔍 正在後台為您尋找最新一集...';
 
-            // 向 Web API 撈取最新一集
             let podcastResponse = await fetch(`https://api.spotify.com/v1/shows/${showId}/episodes?limit=1`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             
-            // 💡 核心防禦：如果撈列表時遇到 401 (代表過期了)，程式現場抓捕錯誤，立刻原地刷新重跑一次！
             if (podcastResponse.status === 401) {
-                console.log("[API 防禦] 撈取列表時發現 Token 過期，立刻原地進行背景刷新...");
+                console.log("[API 防禦] Token 過期，原地啟動背景刷新...");
                 const success = await refreshAccessToken();
                 if (success) {
-                    token = sessionStorage.getItem('spotify_access_token'); // 拿新 Token
-                    // 重新發送剛剛失敗的請求
+                    token = sessionStorage.getItem('spotify_access_token');
                     podcastResponse = await fetch(`https://api.spotify.com/v1/shows/${showId}/episodes?limit=1`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
@@ -311,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 authStatus.innerText = `🎵 正在開播：${latestEpisodeName}`;
 
-                // 指揮虛擬裝置播放
                 await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${currentDeviceId}`, {
                     method: 'PUT',
                     headers: {
@@ -335,7 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 控制循環播放
     async function setRepeatMode(isRepeat) {
         const token = sessionStorage.getItem('spotify_access_token');
         const state = isRepeat ? 'track' : 'off';
