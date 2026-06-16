@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         player.addListener('initialization_error', ({ message }) => { console.error('初始化錯誤:', message); });
         player.addListener('authentication_error', ({ message }) => { console.error('驗證錯誤:', message); });
         player.addListener('account_error', ({ message }) => { 
+            console.error('驗證錯誤:', message);
             alert('帳號錯誤：SDK 播放器僅支援 Spotify Premium 付費會員！');
         });
 
