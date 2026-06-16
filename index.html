@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Podcast 快速啟動器 - SDK 版</title>
+    <title>Podcast 快速啟動器 - 官方最新 SDK 版</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="播客啟動器">
+
     <style>
         body {
             margin: 0; padding: 0;
@@ -50,8 +55,6 @@
             font-size: 18px; font-weight: bold; letter-spacing: 2px; cursor: pointer; box-shadow: 0 10px 20px rgba(52, 152, 219, 0.4); margin-top: 10px;
         }
     </style>
-    
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
 
@@ -62,7 +65,7 @@
             <span class="label">第一步：填入你的 Client ID 並連線</span>
             <input type="text" id="clientIdInput" placeholder="請貼上你的 Client ID">
             <button class="btn-auth" id="authBtn">🔗 登入並連結 Spotify</button>
-            <div id="authStatus" style="font-size: 12px; color: #1DB954;">尚未連結</div>
+            <div id="authStatus" style="font-size: 12px; color: #1DB954; margin-top: 8px;">尚未連結</div>
         </div>
 
         <div class="glass-card">
