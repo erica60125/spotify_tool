@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!client_id) { alert('請填寫有效的 Client ID！'); return; }
         localStorage.setItem('saved_client_id', client_id);
 
-        const redirect_uri = window.location.href.split('?')[0].split('#')[0]; 
+        const redirect_uri ="https://erica60125-spotifytool.vercel.app/index.html"; 
         const codeVerifier = generateRandomString(128);
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         
