@@ -1,75 +1,22 @@
 body {
     margin: 0; padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
     background: linear-gradient(135deg, #090e14 0%, #0e1b29 50%, #14283d 100%);
-    min-height: 100vh;
-    display: flex; justify-content: center; align-items: center;
-    color: #ffffff;
-    -webkit-font-smoothing: antialiased;
+    min-height: 100vh; display: flex; justify-content: center; align-items: center; color: #ffffff; -webkit-font-smoothing: antialiased;
 }
-
-.container {
-    width: 90%; max-width: 360px; text-align: center; padding: 20px 0;
-}
-
-h1 {
-    font-size: 24px; font-weight: 800; margin-bottom: 25px; letter-spacing: 2px;
-    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-
-.glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-radius: 24px; padding: 22px 18px; margin-bottom: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-}
-
-.label { 
-    display: flex; align-items: center; gap: 6px;
-    text-align: left; font-size: 12px; color: #64829f; 
-    margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-}
+.container { width: 90%; max-width: 360px; text-align: center; padding: 20px 0; }
+h1 { font-size: 24px; font-weight: 800; margin-bottom: 25px; letter-spacing: 2px; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 24px; padding: 22px 18px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5); }
+.label { display: flex; align-items: center; gap: 6px; text-align: left; font-size: 12px; color: #64829f; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .label svg { color: #4facfe; }
-
-.current-status { 
-    text-align: left; font-size: 13px; color: #00f2fe; 
-    margin-bottom: 14px; word-break: break-all; font-weight: 500;
-    background: rgba(0, 242, 254, 0.06); padding: 12px; border-radius: 14px;
-    border: 1px solid rgba(0, 242, 254, 0.12);
-}
-
-input[type="text"] {
-    width: 100%; box-sizing: border-box; 
-    background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); 
-    border-radius: 14px; padding: 14px; color: #fff; font-size: 14px; margin-bottom: 12px;
-    outline: none; transition: all 0.3s ease;
-}
-input[type="text"]:focus {
-    border-color: #4facfe; background: rgba(0, 0, 0, 0.4);
-    box-shadow: 0 0 15px rgba(79, 172, 254, 0.15);
-}
+.current-status { text-align: left; font-size: 13px; color: #00f2fe; margin-bottom: 14px; word-break: break-all; font-weight: 500; background: rgba(0, 242, 254, 0.06); padding: 12px; border-radius: 14px; border: 1px solid rgba(0, 242, 254, 0.12); }
+input[type="text"] { width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none; transition: all 0.3s ease; }
+input[type="text"]:focus { border-color: #4facfe; background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px rgba(79, 172, 254, 0.15); }
 input[type="text"]::placeholder { color: #43586d; }
-
-/* 📝 【全新新增】精緻的文字橫條動作按鈕 */
-.btn-text-action {
-    width: 100%; background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, rgba(26, 163, 74, 0.05) 100%);
-    border: 1px solid rgba(29, 185, 84, 0.3); color: #1ed760;
-    padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.05);
-}
+.btn-text-action { width: 100%; background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, rgba(26, 163, 74, 0.05) 100%); border: 1px solid rgba(29, 185, 84, 0.3); color: #1ed760; padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; }
 .btn-text-action:active { transform: scale(0.98); background: rgba(29, 185, 84, 0.25); }
-
-/* 藍色款式的文字橫條按鈕 */
-.btn-text-action.btn-blue {
-    background: rgba(79, 172, 254, 0.12); border-color: rgba(79, 172, 254, 0.25); color: #00f2fe;
-    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.05);
-}
+.btn-text-action.btn-blue { background: rgba(79, 172, 254, 0.12); border-color: rgba(79, 172, 254, 0.25); color: #00f2fe; }
 .btn-text-action.btn-blue:active { background: rgba(79, 172, 254, 0.25); }
-
-/* 🔀 iOS 質感 Switch */
 .row { display: flex; justify-content: space-between; align-items: center; }
 .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -77,35 +24,74 @@ input[type="text"]::placeholder { color: #43586d; }
 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
 input:checked + .slider { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); }
 input:checked + .slider:before { transform: translateX(20px); }
+.btn-start { width: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; padding: 16px; border-radius: 50px; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; box-shadow: 0 8px 30px rgba(79, 172, 254, 0.3); margin-top: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; }
+.btn-start:active { transform: scale(0.97); }
 
-/* 🚀 底部帶文字的大啟動鍵 */
-.btn-start {
-    width: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); 
-    color: white; border: none; padding: 16px; border-radius: 50px;
-    font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
-    cursor: pointer; box-shadow: 0 8px 30px rgba(79, 172, 254, 0.3); 
-    margin-top: 8px; margin-bottom: 20px; transition: all 0.3s ease; 
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+/* ==========================================================================
+   🕒 【全新優化】播放進度條樣式表
+   ========================================================================== */
+.progress-container {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 20px; width: 100%;
 }
-.btn-start:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(79, 172, 254, 0.15); }
 
-/* 🎵 磨砂玻璃控制面版 */
+.time-text {
+    font-size: 11px; color: #64829f; min-width: 32px; font-weight: bold;
+}
+
+/* 消除瀏覽器預設的拉條外觀 */
+.progress-bar {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 4px; background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px; outline: none; cursor: pointer; transition: background 0.2s;
+}
+
+/* 滑鼠滑過去時軌道變亮 */
+.progress-bar:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* 🌟 進度條上的圓形拖拉球 (Webkit 核心如 Chrome / Safari) */
+.progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+    transition: transform 0.1s ease;
+}
+.progress-bar::-webkit-slider-thumb:active { transform: scale(1.4); }
+
+/* 🌟 進度條上的圓形拖拉球 (Firefox 核心) */
+.progress-bar::-moz-range-thumb {
+    width: 12px; height: 12px; border: none; border-radius: 50%;
+    background: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+    transition: transform 0.1s ease;
+}
+.progress-bar::-moz-range-thumb:active { transform: scale(1.4); }
+
+/* ==========================================================================
+   🎵 音樂面板與按鈕列
+   ========================================================================== */
 #playerPanel { background: rgba(255, 255, 255, 0.07); border-color: rgba(255,255,255,0.15); }
 .track-title { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 4px; word-break: break-all; text-align: left; }
 .track-artist { font-size: 13px; color: #64829f; margin-bottom: 18px; text-align: left; display: flex; align-items: center; gap: 6px; }
 #authStatus { font-size: 11px; text-align: left; color: #516982; padding-left: 2px; }
 
-/* 播放控制器按鈕列 */
-.controls-row { display: flex; justify-content: center; gap: 24px; align-items: center; }
+.controls-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
 .btn-control {
     background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #d0e0ff; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; transition: all 0.2s ease;
+    color: #d0e0ff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; transition: all 0.2s ease;
     display: flex; align-items: center; justify-content: center;
 }
 .btn-control:active { background: rgba(255, 255, 255, 0.15); transform: scale(0.92); }
 
-.btn-control.toggle-btn {
-    background: #ffffff; color: #0e1b29; width: 56px; height: 56px;
-    box-shadow: 0 6px 20px rgba(255,255,255,0.15);
+.btn-control.toggle-btn { background: #ffffff; color: #0e1b29; width: 54px; height: 54px; box-shadow: 0 6px 20px rgba(255,255,255,0.15); }
+
+/* 次級控制圖標（如循環按鈕） */
+.btn-control-sub {
+    background: none; border: none; color: #64829f; cursor: pointer;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
 }
-.btn-control.toggle-btn:active { transform: scale(0.92); }
+/* 💡 循環啟動時的綠色炫光激活狀態 */
+.btn-control-sub.active {
+    color: #1ed760; filter: drop-shadow(0 0 6px rgba(30, 215, 96, 0.6));
+}
